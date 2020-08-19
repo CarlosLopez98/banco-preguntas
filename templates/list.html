@@ -1,12 +1,33 @@
-<!DOCTYPE html>
-<html>
-   <body>
-      <h3>{{entidad}}</h3>
+{% extends 'layout.html' %}
 
-      {% for campo in campos %}
-         {{campo['name']}}<br>
-      {% endfor %}
+{% block content %}
+<h1 class="text-center" style="margin-top: 30px;">{{ entidad.upper() }}</h1>
 
-      <a href = "/">Go back to home page</a>
-   </body>
-</html>
+<a href="url_for('add', entidad=entidad)" class="btn btn-success ml-auto">Agregar</a>
+
+<table class="table table-striped" style="margin-top:20px;">
+    <thead class="thead-color">
+        <tr>
+        {% for campo in campos %}
+            <th scope="col">{{ campo['name'][4:].upper() }}</th>
+        {% endfor %}
+            <th scope="col">ACCIONES</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for registro in registros %}
+        <tr>
+            {% for campo in campos %}
+                <td>{{ registro.get_atr(campo['name']) }}</td>
+            {% endfor %}
+                <td>
+                    <a href="url_for('add', entidad=entidad)" class="btn btn-primary ml-auto">Editar</a>
+                    <a href="url_for('add', entidad=entidad)" class="btn btn-danger ml-auto">Eliminar</a>
+                </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<a href="/"><span class="icon-home"></span> Volver a la página principal</a>
+{% endblock %}

@@ -1,9 +1,19 @@
-<!doctype html>
-<html>
-   <body>
-      {% for row in entidades %}
-      <a href = "/list/{{row}}">{{row}}</a><br>
-      {% endfor %}
-      
-   </body>
-</html>
+{% extends 'layout.html' %}
+
+{% block content %}
+<h1 class="text-center" style="margin-top: 30px;">Entidades</h1>
+
+<div class="row row-cols-1 row-cols-md-3">
+    {% for entidad in entidades %}
+    <div class="col mb-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">
+                    <a href="{{ url_for('list', entidad=entidad) }}">{{ entidad.upper() }}</a>
+                </h5>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
