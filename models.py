@@ -46,7 +46,7 @@ class modelo:
         db.session.delete(registro)
         db.session.commit()
 
-#tabla rol
+
 class rol(db.Model, modelo):
     __tablename__ = 'roles'
 
@@ -60,7 +60,7 @@ class rol(db.Model, modelo):
         elif atr == 'rol_nombre':
             return self.rol_nombre
     
-#tabla usuario
+
 class usuario(db.Model, modelo, UserMixin):
     __tablename__ = 'usuarios'
 
@@ -94,38 +94,16 @@ class usuario(db.Model, modelo, UserMixin):
     @password.setter
     def password(self, value):
         self.contrasena = generate_password_hash(value)
-        
-        
-#tabla nivel categoria
-class nivel_categoria(db.Model,modelo):
-    __tablename__='niveles_categorias'
-    id=db.column('nivel_id',db.Integer,primary_key=True)
-    nivel_nombre=db.column(db.String(50))
-    
-    def __init__(self, nombre):
-        self.nivel_nombre_nombre = nombre
 
-    # Obtener un atributo
-    def get_atr(self, atr):
-        if atr == 'nivel_id':
-            return self.id
-        elif atr == 'nivel_nombre':
-            return self.nivel_nombre
-  
 
-    
-#tabla de categoria
 class categoria(db.Model, modelo):
     __tablename__ = 'categorias'
 
     id = db.Column('cat_id', db.Integer, primary_key = True)
-    cat_padre=db.column(db.Integer,db.ForeignKey('categorias.id'),nullable=True)
-    cat_nivel=db.column(db.Integer,db.ForeignKey('niveles_categorias.id'))
     cat_nombre = db.Column(db.String(100))
 
-    def __init__(self, nombre,cat_nivel):
+    def __init__(self, nombre):
         self.cat_nombre = nombre
-        self.cat_nivel=cat_nivel
 
     # Obtener un atributo
     def get_atr(self, atr):
@@ -133,45 +111,20 @@ class categoria(db.Model, modelo):
             return self.id
         elif atr == 'cat_nombre':
             return self.cat_nombre
-        elif atr=='cat_nivel':
-            return self.cat_nivel
-        elif atr=='cat_padre':
-            return self.cat_padre
 
 
-
-
-#Tabla intermediaria entre categoria y competencia
-class categoria_competecia(db.Model,modelo):
-    __tablename__='catagorias_competencias'
-    
-    id=db.column('catCom',db.Integer,primary_key=True)
-    cat_id=db.column(db.Integer,db.ForeignKey('categorias.id'),nullable=False)
-    com_id=db.column(db.Integer,db.ForeignKey('competencias.id'),nullable=False)
-    # Obtener un atributo
-    def get_atr(self, atr):
-        if atr == 'cat_com_id':
-            return self.id
-        elif atr == 'cat_id':
-            return self.cat_id
-        elif atr== 'com_id':
-            return self.com_id
-        
-        
-        
-#tabla para manejar competencias
 class competencia(db.Model, modelo):
     __tablename__ = 'competencias'
 
     id = db.Column('com_id', db.Integer, primary_key=True)
     com_nombre = db.Column(db.String(50))
     com_descripcion = db.Column(db.Text)
-    
+    com_categoria = db.Column(db.Integer, db.ForeignKey('categorias.cat_id'))
 
-    def __init__(self, nombre, descripcion):
+    def __init__(self, nombre, descripcion, categoria):
         self.com_nombre = nombre
         self.com_descripcion = descripcion
-       
+        self.com_categoria = categoria
 
     # Obtener un atributo
     def get_atr(self, atr):
@@ -181,9 +134,8 @@ class competencia(db.Model, modelo):
             return self.com_nombre
         elif atr == 'com_descripcion':
             return self.com_descripcion
-       
-
-#tabla para manejo de evaluacion
+        elif atr == 'com_categoria':
+            return self.com_categoria
 
 
 class evaluacion(db.Model, modelo):
@@ -218,7 +170,7 @@ class evaluacion(db.Model, modelo):
         elif atr == 'eva_competencia':
             return self.eva_competencia
 
-#tabla para el manejo de tipo de preguntas
+
 class tipo_pregunta(db.Model, modelo):
     __tablename__ = 'tipo_preguntas'
 
@@ -239,36 +191,18 @@ class tipo_pregunta(db.Model, modelo):
         elif atr == 'tpr_descripcion':
             return self.tpr_descripcion
 
-#tabla intermediaria entre pregunta y evaluacion
-class evaluacion_pregunta(db.Model,modelo):
-    __tablename__='evaluaciones_preguntas'
-    id = db.Column('pre_eva_id', db.Integer, primary_key = True)
-    eva_id=db.column(db.Integer,db.ForeignKey('evaluaciones.id'))
-    pre_id=db.column(db.Integer,db.ForeignKey('preguntas.id'))
-    
-    def __init__(self, eva_id,pre_id):
-        self.eva_id = eva_id
-        self.pre_id=pre_id
 
-    # Obtener un atributo
-    def get_atr(self, atr):
-        if atr == 'eva_pre_id':
-            return self.id
-        elif atr == 'eva_id':
-            return self.eva_id
-        elif atr == 'pre_id':
-            return self.pre_id
-    
-#tabla para manejo de tipo de preguntas
 class pregunta(db.Model, modelo):
     __tablename__ = 'preguntas'
 
     id = db.Column('pre_id', db.Integer, primary_key = True)
     pre_texto = db.Column(db.String(150))
+    pre_evaluacion = db.Column(db.Integer, db.ForeignKey('evaluaciones.eva_id'))
     pre_tipo_pregunta = db.Column(db.Integer, db.ForeignKey('tipo_preguntas.tpr_id'))
 
-    def __init__(self, texto,  tipo):
+    def __init__(self, texto, evaluacion, tipo):
         self.pre_texto = texto
+        self.pre_evaluacion = evaluacion
         self.pre_tipo_pregunta = tipo
 
     # Obtener un atributo
@@ -277,11 +211,13 @@ class pregunta(db.Model, modelo):
             return self.id
         elif atr == 'pre_texto':
             return self.pre_texto
+        elif atr == 'pre_evaluacion':
+            return self.pre_evaluacion
         elif atr == 'pre_tipo_pregunta':
             return self.pre_tipo_pregunta
         
 
-#tala para manejo de respuesta
+
 class respuesta(db.Model, modelo):
     __tablename__ = 'respuestas'
 
@@ -295,7 +231,7 @@ class respuesta(db.Model, modelo):
         self.res_valor = valor
         self.res_pregunta = pregunta
 
-    def get_atr(self,atr):
+    def get_atr(self):
         if atr == 'res_id':
             return self.id
         elif atr == 'res_texto':
