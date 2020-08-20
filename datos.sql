@@ -9,23 +9,19 @@ INSERT INTO usuarios VALUES(null, 'profe', 'profe', 'profe@mail.com', 'pbkdf2:sh
 INSERT INTO usuarios VALUES(null, 'estudiante', 'estudiante', 'estudiante@mail.com', 'pbkdf2:sha256:150000$UpMUkQ4t$47d12be0e858ffd2e70171266ed869861ea38e4cf55a6f1c632b53defcc47170', 3);
 
 /* CATEGORIAS */
-INSERT INTO categorias VALUES(null, '');
-INSERT INTO categorias VALUES(null, '');
-INSERT INTO categorias VALUES(null, '');
+/* INSERT INTO categorias VALUES(null, 'nombre de la categoria'); */
 
 /* COMPETENCIAS */
-INSERT INTO competencias VALUES(null, 'nombre', 'descripcion', 1);
-INSERT INTO competencias VALUES(null, 'nombre', 'descripcion', 1);
-INSERT INTO competencias VALUES(null, 'nombre', 'descripcion', 1);
+/* INSERT INTO competencias VALUES(null, 'nombre de la competencia', 'descripcion', id de la categoria); */
 
 /* EVALUACIONES */
-INSERT INTO evaluaciones VALUES(null, 'nombre', 'puntuacion', 'conjunta', 1, 1);
+/* INSERT INTO evaluaciones VALUES(null, 'nombre de la evaluacion', puntuacion_maxima, es conjunta:boolean, id_usuario, id_competencia); */
 
 /* TIPO PREGUNTAS */
-INSERT INTO tipo_preguntas VALUES(null, 'nombre', 'descripcion');
+/* INSERT INTO tipo_preguntas VALUES(null, 'nombre del tipo', 'descripcion'); */
 
 /* PREGUNTAS */
-INSERT INTO preguntas VALUES(null, 'texto', 1, 1);
+/* INSERT INTO preguntas VALUES(null, 'texto de la pregunta', id evaluacion, id tipo_pregunta); */
 
 /* RESPUESTAS */
-INSERT INTO respuestas VALUES(null, 'texto', 'valor:float', 1);
+/* INSERT INTO respuestas VALUES(null, 'texto de la respuesta', valor:float, id_pregunta); */

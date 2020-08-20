@@ -1,4 +1,4 @@
-from flask import request, flash, url_for, redirect, render_template, abort
+from flask import request, flash, url_for, redirect, render_template, abort, session
 from main import app, db, inspector, login_manager
 from models import *
 from flask_login import login_user, logout_user, login_required, current_user
@@ -44,10 +44,12 @@ def edit(entidad, id):
 def delete(entidad, id):
 	registro = get_modelo(entidad).get_by_id(get_modelo(entidad), id)
 	if registro is None:
-		flash('No es posible eliminar el registro', 'warning')
+		flash('El registro que desea eliminar no existe', 'warning')
+		session['message'] = 'El registro que desea eliminar no existe'
 	else:
 		registro.delete(registro)
 		flash('El registro se eliminó con éxito', 'success')
+		session['message'] = 'El registro se eliminó con éxito'
 
 	return redirect(url_for('list', entidad=entidad))
 
