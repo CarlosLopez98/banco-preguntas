@@ -30,9 +30,26 @@ def list(entidad):
 
 	return render_template('list.html', title=entidad, entidades=entidades, entidad=entidad, campos=campos, registros=registros)
 
-@app.route('/update/<string:entidad>/<int:id>')
-def update(entidad, id):
-	return 'h1'
+@app.route('/add/<string:entidad>')
+def add(entidad):
+	entidades = db.engine.table_names()
+	return render_template('add.html', title=f'Añadir {entidad}', entidad=entidad, entidades=entidades)
+
+@app.route('/edit/<string:entidad>/<int:id>')
+def edit(entidad, id):
+	entidades = db.engine.table_names()
+	return render_template('edit.html', title=f'Editar {entidad}', entidad=entidad, entidades=entidades)
+
+@app.route('/delete/<string:entidad>/<int:id>')
+def delete(entidad, id):
+	registro = get_modelo(entidad).get_by_id(get_modelo(entidad), id)
+	if registro is None:
+		flash('No es posible eliminar el registro', 'warning')
+	else:
+		registro.delete(registro)
+		flash('El registro se eliminó con éxito', 'success')
+
+	return redirect(url_for('list', entidad=entidad))
 
 @app.route('/login')
 def login():

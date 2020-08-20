@@ -3,10 +3,10 @@
 {% block content %}
 <h1 class="text-center" style="margin-top: 30px;">{{ entidad.upper() }}</h1>
 
-<a href="url_for('add', entidad=entidad)" class="btn btn-success ml-auto">Agregar</a>
+<a href="{{ url_for('add', entidad=entidad) }}" class="btn btn-success ml-auto">Agregar</a>
 
 <table class="table table-striped" style="margin-top:20px;">
-    <thead class="thead-color">
+    <thead class="thead-dark">
         <tr>
         {% for campo in campos %}
             <th scope="col">{{ campo['name'][4:].upper() }}</th>
@@ -21,8 +21,8 @@
                 <td>{{ registro.get_atr(campo['name']) }}</td>
             {% endfor %}
                 <td>
-                    <a href="url_for('add', entidad=entidad)" class="btn btn-primary ml-auto">Editar</a>
-                    <a href="url_for('add', entidad=entidad)" class="btn btn-danger ml-auto">Eliminar</a>
+                    <a href="{{ url_for('edit', entidad=entidad, id=registro.id) }}" class="btn btn-primary ml-auto">Editar</a>
+                    <a href="{{ url_for('delete', entidad=entidad, id=registro.id) }}" class="btn btn-danger ml-auto">Eliminar</a>
                 </td>
         </tr>
         {% endfor %}

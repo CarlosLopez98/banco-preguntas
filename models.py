@@ -11,8 +11,6 @@ def get_modelo(entidad):
         return usuario
     elif entidad == 'categorias':
         return categoria
-    elif entidad == 'tipo_categorias':
-        return tipo_categoria
     elif entidad == 'competencias':
         return competencia
     elif entidad == 'evaluaciones':
@@ -37,6 +35,16 @@ class modelo:
     @classmethod
     def get_all(cls, entidad):
         return entidad.query.all()
+
+    @classmethod
+    def add(cls, registro):
+        db.session.add(registro)
+        db.session.commit()
+
+    @classmethod
+    def delete(cls, registro):
+        db.session.delete(registro)
+        db.session.commit()
 
 
 class rol(db.Model, modelo):
@@ -93,11 +101,9 @@ class categoria(db.Model, modelo):
 
     id = db.Column('cat_id', db.Integer, primary_key = True)
     cat_nombre = db.Column(db.String(100))
-    cat_tipo = db.Column(db.Integer, db.ForeignKey('tipo_categorias.tca_id'))
 
-    def __init__(self, nombre, tipo):
+    def __init__(self, nombre):
         self.cat_nombre = nombre
-        self.cat_tipo = tipo
 
     # Obtener un atributo
     def get_atr(self, atr):
@@ -105,25 +111,6 @@ class categoria(db.Model, modelo):
             return self.id
         elif atr == 'cat_nombre':
             return self.cat_nombre
-        elif atr == 'cat_tipo':
-            return self.cat_tipo
-
-
-class tipo_categoria(db.Model, modelo):
-    __tablename__ = 'tipo_categorias'
-
-    id = db.Column('tca_id', db.Integer, primary_key = True)
-    tca_nombre = db.Column(db.String(50))
-
-    def __init__(self, nombre):
-        self.tca_nombre = nombre
-
-    # Obtener un atributo
-    def get_atr(self, atr):
-        if atr == 'tca_id':
-            return self.id
-        elif atr == 'tca_nombre':
-            return self.tca_nombre
 
 
 class competencia(db.Model, modelo):
@@ -132,10 +119,12 @@ class competencia(db.Model, modelo):
     id = db.Column('com_id', db.Integer, primary_key=True)
     com_nombre = db.Column(db.String(50))
     com_descripcion = db.Column(db.Text)
+    com_categoria = db.Column(db.Integer, db.ForeignKey('categorias.cat_id'))
 
-    def __init__(self, nombre, descripcion):
+    def __init__(self, nombre, descripcion, categoria):
         self.com_nombre = nombre
         self.com_descripcion = descripcion
+        self.com_categoria = categoria
 
     # Obtener un atributo
     def get_atr(self, atr):
@@ -145,6 +134,8 @@ class competencia(db.Model, modelo):
             return self.com_nombre
         elif atr == 'com_descripcion':
             return self.com_descripcion
+        elif atr == 'com_categoria':
+            return self.com_categoria
 
 
 class evaluacion(db.Model, modelo):
@@ -155,11 +146,14 @@ class evaluacion(db.Model, modelo):
     eva_puntuacionmax = db.Column(db.Integer)
     eva_conjunta = db.Column(db.Boolean)
     eva_usuario = db.Column(db.Integer, db.ForeignKey('usuarios.usr_id'))
+    eva_competencia = db.Column(db.Integer, db.ForeignKey('competencias.com_id'))
 
-    def __init__(self, nombre, puntuacion_max, conjunta=False):
+    def __init__(self, nombre, puntuacion_max, usuario, competencia, conjunta=False):
         self.eva_nombre = nombre
         self.eva_puntuacionmax = puntuacion_max
-        self.conjunta = conjunta
+        self.eva_conjunta = conjunta
+        self.eva_usuario = usuario
+        self.eva_competencia = competencia
 
     # Obtener un atributo
     def get_atr(self, atr):
@@ -173,17 +167,20 @@ class evaluacion(db.Model, modelo):
             return self.eva_conjunta
         elif atr == 'eva_usuario':
             return self.eva_usuario
+        elif atr == 'eva_competencia':
+            return self.eva_competencia
 
 
 class tipo_pregunta(db.Model, modelo):
     __tablename__ = 'tipo_preguntas'
 
     id = db.Column('tpr_id', db.Integer, primary_key=True)
-    tpr_mombre = db.Column(db.String(50))
-    tpr_evaluacion = db.Column(db.Integer, db.ForeignKey('evaluaciones.eva_id'))
+    tpr_nombre = db.Column(db.String(50), nullable=False)
+    tpr_descripcion = db.Column(db.Text)
 
-    def __init__(self, nombre):
+    def __init__(self, nombre, descripcion=None):
         self.tpr_nombre = nombre
+        self.tpr_descripcion = descripcion
 
     # Obtener un atributo
     def get_atr(self, atr):
@@ -191,8 +188,8 @@ class tipo_pregunta(db.Model, modelo):
             return self.id
         elif atr == 'tpr_nombre':
             return self.tpr_nombre
-        elif atr == 'tpr_evaluacion':
-            return self.tpr_evaluacion    
+        elif atr == 'tpr_descripcion':
+            return self.tpr_descripcion
 
 
 class pregunta(db.Model, modelo):
@@ -201,15 +198,12 @@ class pregunta(db.Model, modelo):
     id = db.Column('pre_id', db.Integer, primary_key = True)
     pre_texto = db.Column(db.String(150))
     pre_evaluacion = db.Column(db.Integer, db.ForeignKey('evaluaciones.eva_id'))
-    pre_categoria = db.Column(db.Integer, db.ForeignKey('categorias.cat_id')) 
-    pre_competencia = db.Column(db.Integer, db.ForeignKey('competencias.com_id'))
     pre_tipo_pregunta = db.Column(db.Integer, db.ForeignKey('tipo_preguntas.tpr_id'))
 
-    def __init__(self, texto, categoria, tipo, competencia):
+    def __init__(self, texto, evaluacion, tipo):
         self.pre_texto = texto
-        self.cat_id = categoria
-        self.com_id = competencia
-        self.tpr_id = tipo
+        self.pre_evaluacion = evaluacion
+        self.pre_tipo_pregunta = tipo
 
     # Obtener un atributo
     def get_atr(self, atr):
@@ -219,10 +213,6 @@ class pregunta(db.Model, modelo):
             return self.pre_texto
         elif atr == 'pre_evaluacion':
             return self.pre_evaluacion
-        elif atr == 'pre_categoria':
-            return self.pre_categoria
-        elif atr == 'pre_competencia':
-            return self.pre_competencia
         elif atr == 'pre_tipo_pregunta':
             return self.pre_tipo_pregunta
         
@@ -239,7 +229,7 @@ class respuesta(db.Model, modelo):
     def __init__(self, texto, valor, pregunta):
         self.res_texto = texto
         self.res_valor = valor
-        self.pre_id = pregunta
+        self.res_pregunta = pregunta
 
     def get_atr(self):
         if atr == 'res_id':
