@@ -18,11 +18,13 @@
 			<div class="list-group list-group-flush">
 				{% if entidades %}
 					{% for entidad in entidades %}
+					{%if entidad!='evaluaciones_preguntas' and entidad!='evaluaciones_competencias' and entidad!='categorias_competencias' %}
 						{% if title == entidad %}
 						<a href="{{ url_for('list', entidad=entidad) }}" class="list-group-item list-group-item-action bg-light text-primary">{{ entidad.upper() }}</a>
 						{% else %}
 						<a href="{{ url_for('list', entidad=entidad) }}" class="list-group-item list-group-item-action bg-light">{{ entidad.upper() }}</a>
 						{% endif %}
+					{% endif %}
 					{% endfor %}
 				{% else %}
 					<a href="{{ url_for('login') }}" class="list-group-item list-group-item-action bg-light">INGRESAR</a>

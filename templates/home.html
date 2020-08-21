@@ -5,6 +5,7 @@
 
 <div class="row row-cols-1 row-cols-md-3">
     {% for entidad in entidades %}
+    {% if entidad!='evaluaciones_preguntas' and entidad!='categorias_competencias' and entidad!='evaluaciones_competencias' %}
     <div class="col mb-4">
         <div class="card" style="background-color: #F1F1F1;">
             <div class="card-body text-center">
@@ -14,6 +15,7 @@
             </div>
         </div>
     </div>
+    {% endif %}
     {% endfor %}
 </div>
 {% endblock %}
