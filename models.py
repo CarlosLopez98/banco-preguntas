@@ -149,7 +149,7 @@ class categoria(db.Model, modelo):
 
 #Tabla intermediaria entre categoria y competencia
 class categoria_competecia(db.Model,modelo):
-    __tablename__='catagorias_competencias'
+    __tablename__='categorias_competencias'
     
     id=db.Column('catCom',db.Integer,primary_key=True)
     cat_id=db.column(db.Integer,db.ForeignKey('categorias.id'))
@@ -187,8 +187,26 @@ class competencia(db.Model, modelo):
             return self.com_nombre
         elif atr == 'com_descripcion':
             return self.com_descripcion
-       
 
+#tabla conexion entre evaluacion y competencia
+
+class evaluacion_competencia(db.Model,modelo):
+    __tablename__='evaluaciones_competencias'
+
+    id=db.Column('eva_com_id', db.Integer, primary_key=True)        
+    eva_id=db.column(db.Integer,db.ForeignKey('evaluaciones.id'))
+    com_id=db.column(db.Integer,db.ForeignKey('competencias.id'))
+    
+    def __init__(self,eva_id,com_id):
+        self.eva_id=eva_id
+        self.com_id=com_id
+        
+        
+    def get_atr(self,atr):
+        if atr=='eva_id':
+            return self.eva_id
+        elif atr=='com_id':
+            return self.com_id
 #tabla para manejo de evaluacion
 
 
