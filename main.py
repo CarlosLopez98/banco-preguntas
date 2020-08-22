@@ -21,6 +21,8 @@ login_manager.login_message = 'Es necesario iniciar sesión'
 login_manager.login_message_category = 'warning'
 
 
+
+
 if __name__ == '__main__':
     db.create_all()
     app.run(debug = True)

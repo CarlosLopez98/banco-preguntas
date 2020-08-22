@@ -2,7 +2,7 @@ from flask import request, flash, url_for, redirect, render_template, abort, ses
 from main import app, db, inspector, login_manager
 from models import *
 from flask_login import login_user, logout_user, login_required, current_user
-from form import RegisterForm,LoginForm
+from form import *
 import main
 from models import usuario,rol
 
@@ -17,8 +17,9 @@ def load_user(id):
 
 @app.route('/')
 def home():
-	entidades = db.engine.table_names()
-	return render_template('home.html', title='Inicio', menu='toggled', entidades=entidades)
+	
+    entidades = db.engine.table_names()
+    return render_template('home.html', title='Inicio', menu='toggled', entidades=entidades)
 
 @app.route('/list/<string:entidad>')
 def list(entidad):
@@ -32,10 +33,16 @@ def list(entidad):
 
 	return render_template('list.html', title=entidad, entidades=entidades, entidad=entidad, campos=campos, registros=registros)
 
-@app.route('/add/<string:entidad>')
+@app.route('/add/<string:entidad>',methods=['GET', 'POST'])
 def add(entidad):
-	entidades = db.engine.table_names()
-	return render_template('add.html', title=f'Añadir {entidad}', entidad=entidad, entidades=entidades)
+    form=getForm(entidad,request.form)
+    entidades = db.engine.table_names()
+    if request.method == 'POST' and form.validate():
+        data=[]
+        for i in form:
+            data+=i.data
+        get_modelo(entidad).create_element(data)    
+    return render_template('add.html', title=f'Añadir {entidad}', entidad=entidad, entidades=entidades,form=form)
 
 @app.route('/edit/<string:entidad>/<int:id>')
 def edit(entidad, id):

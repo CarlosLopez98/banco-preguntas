@@ -21,6 +21,8 @@ def get_modelo(entidad):
         return pregunta
     elif entidad == 'respuestas':
         return respuesta
+    elif entidad == 'niveles_categorias':
+        return nivel_categoria
 
 
 class modelo:
@@ -130,10 +132,10 @@ class nivel_categoria(db.Model,modelo):
     __tablename__='niveles_categorias'
     
     id= db.Column('nivel_id', db.Integer , primary_key = True)
-    nivel_nombre=db.column(db.String(50))
+    nivel_nombre = db.Column(db.String(50),nullable=False)
     
     def __init__(self, nombre):
-        self.nivel_nombre_nombre = nombre
+        self.nivel_nombre = nombre
 
     # Obtener un atributo
     def get_atr(self, atr):
@@ -142,6 +144,9 @@ class nivel_categoria(db.Model,modelo):
         elif atr == 'nivel_nombre':
             return self.nivel_nombre
 
+    @classmethod
+    def get_by_name(cls, nivel_nombre):
+        return nivel_categoria.query.filter_by(nivel_nombre=nivel_nombre).first()
 
     
 #tabla de categoria
@@ -149,9 +154,9 @@ class categoria(db.Model, modelo):
     __tablename__ = 'categorias'
 
     id = db.Column('cat_id', db.Integer, primary_key = True)
-    cat_padre=db.column(db.Integer,db.ForeignKey('categorias.id'))
-    cat_nivel=db.column(db.Integer,db.ForeignKey('niveles_categorias.id'))
-    cat_nombre = db.Column(db.String(100))
+    cat_padre=db.Column(db.Integer,db.ForeignKey('categorias.cat_id'))
+    cat_nivel=db.Column(db.Integer,db.ForeignKey('niveles_categorias.nivel_id'))
+    cat_nombre = db.Column(db.String(100),nullable=False)
 
     def __init__(self, nombre,cat_nivel):
         self.cat_nombre = nombre
@@ -168,16 +173,34 @@ class categoria(db.Model, modelo):
         elif atr=='cat_padre':
             return self.cat_padre
 
+    @classmethod
+    def get_by_nivel(cls, cat_nivel):
+        return categoria.query.filter_by(cat_nivel=cat_nivel)
+    @classmethod
+    def create_element(cls, data):
+        data[1]=get_modelo('niveles_categorias').get_by_name('Espacio academico').get_atr("nivel_id")
+        if data[1]==1:
+            r=None 
+        else:
+            r=get_modelo('categorias').get_by_name(data[2]).get_atr("cat_id")
+        cat = categoria(cat_nombre=data[0],cat_nivel=data[1],cat_padre=r)
 
+        db.session.add(cat)
+        db.session.commit()
 
+        return cat
 
+    @classmethod
+    def get_by_name(cls, cat_nombre):
+        return nivel_categoria.query.filter_by(cat_nombre=cat_nombre).first()    
+       
 #Tabla intermediaria entre categoria y competencia
 class categoria_competecia(db.Model,modelo):
     __tablename__='categorias_competencias'
     
     id=db.Column('catCom',db.Integer,primary_key=True)
-    cat_id=db.column(db.Integer,db.ForeignKey('categorias.id'))
-    com_id=db.column(db.Integer,db.ForeignKey('competencias.id'))
+    cat_id=db.Column(db.Integer,db.ForeignKey('categorias.id'))
+    com_id=db.Column(db.Integer,db.ForeignKey('competencias.id'))
     # Obtener un atributo
     def get_atr(self, atr):
         if atr == 'cat_com_id':
@@ -211,15 +234,28 @@ class competencia(db.Model, modelo):
             return self.com_nombre
         elif atr == 'com_descripcion':
             return self.com_descripcion
+        
+    @classmethod
+    def create_element(cls, data):
+        
+        com= competencia(com_nombre=data[0],com_descripcion=data[1])
 
+        db.session.add(com)
+        db.session.commit()
+
+        return com
+    
+    @classmethod
+    def get_by_name(cls, com_nombre):
+        return competencia.query.filter_by(com_nombre=com_nombre).first()
 #tabla conexion entre evaluacion y competencia
 
 class evaluacion_competencia(db.Model,modelo):
     __tablename__='evaluaciones_competencias'
 
     id=db.Column('eva_com_id', db.Integer, primary_key=True)        
-    eva_id=db.column(db.Integer,db.ForeignKey('evaluaciones.id'))
-    com_id=db.column(db.Integer,db.ForeignKey('competencias.id'))
+    eva_id=db.Column(db.Integer,db.ForeignKey('evaluaciones.id'))
+    com_id=db.Column(db.Integer,db.ForeignKey('competencias.id'))
     
     def __init__(self,eva_id,com_id):
         self.eva_id=eva_id
@@ -257,14 +293,23 @@ class evaluacion(db.Model, modelo):
             return self.id
         elif atr == 'eva_nombre':
             return self.eva_nombre
-        elif atr == 'eva_puntacionmax':
-            return self.eva_puntacionmax
+        elif atr == 'eva_puntuacionmax':
+            return self.eva_puntuacionmax
         elif atr == 'eva_conjunta':
             return self.eva_conjunta
         elif atr == 'eva_usuario':
             return self.eva_usuario
         elif atr == 'eva_competencia':
             return self.eva_competencia
+    @classmethod
+    def create_element(cls, data):
+        c=get_modelo('competencias').get_by_name(data[3]).get_atr("com_id")
+        eva = evaluacion(eva_nombre=data[0],eva_puntuacionmax=data[1],conjunta=data[2],eva_competencia=c,eva_usuario=data[4])
+
+        db.session.add(eva)
+        db.session.commit()
+
+        return eva
 
 #tabla para el manejo de tipo de preguntas
 class tipo_pregunta(db.Model, modelo):
@@ -291,8 +336,8 @@ class tipo_pregunta(db.Model, modelo):
 class evaluacion_pregunta(db.Model,modelo):
     __tablename__='evaluaciones_preguntas'
     id = db.Column('pre_eva_id', db.Integer, primary_key = True)
-    eva_id=db.column(db.Integer,db.ForeignKey('evaluaciones.id'))
-    pre_id=db.column(db.Integer,db.ForeignKey('preguntas.id'))
+    eva_id=db.Column(db.Integer,db.ForeignKey('evaluaciones.id'))
+    pre_id=db.Column(db.Integer,db.ForeignKey('preguntas.id'))
     
     def __init__(self, eva_id,pre_id):
         self.eva_id = eva_id

@@ -1,0 +1,17 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+    <h1 class="text-center" style="margin-top: 30px;">AÑADIR {{ entidad.upper() }}</h1>
+    <form action="" method="POST" novalidate>
+    {% for f in form%}
+         <div class="form-group">
+                {{f.label}}
+                           {{ f }}<br>
+                {% for error in f.errors %}
+                    <span style="color: red;">{{ error }}</span>
+                {% endfor %}
+         </div>   
+    {% endfor %}        
+        <input type="submit" value="Añadir" class="card-link btn btn-primary">
+    </form>
+{% endblock %}

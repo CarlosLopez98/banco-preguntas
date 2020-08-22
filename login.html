@@ -1,0 +1,31 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="card mr-auto ml-auto" style="width: 26rem; margin-top: 180px;">
+    <div class="card-header text-center">
+        <h5 class="card-title">Ingresar</h5>
+    </div>
+    <div class="card-body">
+        <form action="" method="POST">
+            {{form.hidden_tag}}
+            <div class="form-group">
+                {{form.email.label}}
+                           {{ form.email(size=32) }}<br>
+                {% for error in form.email.errors %}
+                    <span style="color: red;">{{ error }}</span>
+                {% endfor %}
+            </div>
+
+            <div class="form-group">
+                {{form.password.label}}
+                           {{ form.password(size=32) }}<br>
+                {% for error in form.password.errors %}
+                    <span style="color: red;">{{ error }}</span>
+                {% endfor %}
+            </div>
+
+            <input type="submit" value="Ingresar" class="card-link btn btn-primary">
+        </form>
+    </div>
+</div>
+{% endblock %}

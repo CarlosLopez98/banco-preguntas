@@ -1,15 +1,26 @@
 from wtforms import Form
 from wtforms import validators
-from wtforms import StringField, PasswordField, BooleanField, HiddenField, TextAreaField, IntegerField,SelectField
+from wtforms import StringField, PasswordField, BooleanField, HiddenField, TextAreaField, IntegerField,SelectField,DecimalField
 from wtforms.fields.html5 import EmailField
 
 from models import *
 from main import inspector 
 
 
-
-
-
+def getForm(form,r):
+    if form =='categorias':
+        return CategoriaForm(r,niveles=0)
+    elif form == 'competencias':
+        return CompetenciaForm(r)
+    elif form=='evaluaciones':
+        return EvaluacionForm(r)
+    elif form =='preguntas':
+        return PreguntaForm(r,tipos=0)
+    elif form =='tipo_preguntas':
+        return TipoPreguntaForm(r)
+    elif form =='respuestas':
+        return RespuestaForm(r,preguntas=0)
+    
 def lenght_honeypot(form, field):
     if len(field.data) > 0:
         raise validators.ValidationError('Solo los humanos pueden completar este registro!')
@@ -73,3 +84,78 @@ class RegisterForm(Form):
             return False
 
         return True    
+    
+    
+class CategoriaForm(Form):
+    nombre=  StringField('Nombre de la categoria', [
+        validators.length(min=4, max=50),
+        validators.data_required(message='Ingresa el nombre.')
+    ])  
+    nivel=get_modelo('niveles_categorias').get_all(get_modelo('niveles_categorias'))
+    niveles=SelectField('niveles de categoria', choices=[(n.get_atr('nivel_nombre')) for n in nivel ])
+    
+    padre=get_modelo('categorias').get_by_nivel(1)
+   
+    padres=SelectField('Espacios academicos', choices=[(pa.get_atr('cat_nombre')) for pa in padre])
+    
+    def validate(self):
+        if not Form.validate(self):
+            return False
+        return True
+class CompetenciaForm(Form):
+    nombre= StringField('Nombre de la competencia', [
+        validators.length(min=4, max=50),
+        validators.data_required(message='Ingresa el nombre.')
+    ])
+
+    descripcion= StringField('descripcion', [
+        validators.length(min=4, max=50),
+        validators.data_required(message='Ingresa el nombre.')
+    ])     
+    
+class EvaluacionForm(Form):
+       nombre= StringField('Nombre de la evaluación', [
+        validators.length(min=4, max=50),
+        validators.data_required(message='Ingresa el nombre.')
+    ])  
+       
+       valor= IntegerField('Valor maximo', [
+       validators.data_required(message='Ingresa un valor.')
+    ])  
+       conjunta = BooleanField()
+       com=get_modelo('competencias').get_all(get_modelo('competencias'))
+       competencias=SelectField('Competencia', choices=[(t.get_atr('com_nombre')) for t in com])
+       
+class PreguntaForm(Form):
+        contenido= StringField('Contenido de la pregunta', [
+        validators.length(min=4, max=50),
+        validators.data_required(message='Ingresa el nombre.')
+    ])    
+        tipo=get_modelo('tipo_preguntas').get_all(get_modelo('tipo_preguntas'))
+        tipos=SelectField('Tipos de pregunta', choices=[(t.get_atr('tpr_nombre')) for t in tipo])
+        
+class TipoPreguntaForm(Form):
+        contenido= StringField('Nombre', [
+        validators.length(min=4, max=50),
+        validators.data_required(message='Ingresa el nombre.')
+    ]) 
+        descripcion= StringField('Descripción', [
+        validators.length(min=4, max=50),
+        validators.data_required(message='Ingresa una descripcion.')
+    ]) 
+        
+class RespuestaForm(Form):
+    texto=StringField('Texto', [
+        validators.length(min=4, max=50),
+        validators.data_required(message='Ingresa el nombre.')
+    ])    
+    
+    valor=DecimalField('valor', [
+        validators.length(min=4, max=50),
+        validators.data_required(message='Ingresa un nombre.')
+    ])    
+    
+    pregunta=get_modelo('preguntas').get_all(get_modelo('preguntas'))
+    preguntas=SelectField('preguntas', choices=[(p.get_atr('pre_texto')) for p in pregunta ])
+    
+    
