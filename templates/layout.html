@@ -28,7 +28,7 @@
 					{% endfor %}
 				{% else %}
 					<a href="{{ url_for('login') }}" class="list-group-item list-group-item-action bg-light">INGRESAR</a>
-					<a href="{{ url_for('signup') }}" class="list-group-item list-group-item-action bg-light">REGISTRARSE</a>
+					<a href="{{ url_for('signup') }}" classhttp://127.0.0.1:5000/="list-group-item list-group-item-action bg-light">REGISTRARSE</a>
 				{% endif %}
 			</div>
 		</div>
@@ -56,6 +56,9 @@
 						{% endfor %}
 					{% endif %}
 				{% endwith %}
+				<H3 class="card" >
+    				<a href="{{ url_for('login') }}">Entrar</a>
+				</H3>
 				{% block content %}
 				{% endblock%}
 			</div>
