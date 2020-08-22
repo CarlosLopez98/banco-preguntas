@@ -2,7 +2,9 @@ from flask import request, flash, url_for, redirect, render_template, abort, ses
 from main import app, db, inspector, login_manager
 from models import *
 from flask_login import login_user, logout_user, login_required, current_user
-
+from form import RegisterForm,LoginForm
+import main
+from models import usuario,rol
 
 @app.errorhandler(404)
 def page_not_found(error):
@@ -53,10 +55,48 @@ def delete(entidad, id):
 
 	return redirect(url_for('list', entidad=entidad))
 
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-	return render_template('login.html', title="Ingresar")
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
 
-@app.route('/signup')
+    form = LoginForm(request.form)
+
+    if request.method == 'POST' and form.validate():
+        username = form.email.data
+        password = form.password.data
+        
+        user = usuario.get_by_email(username)
+        if user and user.verify_password(password):
+            login_user(user)
+            flash('Usuario autenticado.', 'success')
+
+            return redirect(url_for('home'))
+
+        else:
+            flash('email o password incorrectos.', 'danger')
+    
+    return render_template('login.html', title="Ingresar",form=form)
+
+@app.route('/signup', methods=['GET', 'POST'])
 def signup():
-	return render_template('signup.html', title="Registro")
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+
+    form = RegisterForm(request.form,roles=1)
+   
+    if request.method == 'POST' and form.validate():
+        name=form.nombre.data
+        apellido=form.apellido.data
+        email = form.email.data
+        password = form.password.data
+        r=form.roles.data
+        r=rol.get_by_name(r).get_atr('rol_id')
+        user = usuario.create_element(name,apellido,email,password,r)
+        flash('Usuario registrado con éxito.', 'success')
+
+        return redirect(url_for('home'))
+
+    return render_template('signup.html', title='Signup', form=form)
+	
+

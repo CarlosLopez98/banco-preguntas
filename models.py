@@ -25,7 +25,7 @@ def get_modelo(entidad):
 
 class modelo:
 
-    def get_atr(self):
+    def get_atr(self,atr):
         pass
 
     @classmethod
@@ -63,7 +63,9 @@ class rol(db.Model, modelo):
             return self.id
         elif atr == 'rol_nombre':
             return self.rol_nombre
-    
+    @classmethod
+    def get_by_name(cls, rol_nombre):
+        return rol.query.filter_by(rol_nombre=rol_nombre).first()
 #tabla usuario
 class usuario(db.Model, modelo, UserMixin):
     __tablename__ = 'usuarios'
@@ -87,9 +89,11 @@ class usuario(db.Model, modelo, UserMixin):
             return self.usr_correo
         elif atr == 'usr_rol':
             return self.usr_rol
+        
 
     def verify_password(self, password):
-        return check_password_hash(self.contrasena, password)
+       
+        return check_password_hash(self.usr_contrasena, password)
 
     @property
     def password(self):
@@ -97,8 +101,28 @@ class usuario(db.Model, modelo, UserMixin):
 
     @password.setter
     def password(self, value):
-        self.contrasena = generate_password_hash(value)
+        self.usr_contrasena = generate_password_hash(value)
         
+    @classmethod
+    def create_element(cls, nombre,apellido,email,password,rol):
+        user = usuario(usr_nombre=nombre,usr_apellido=apellido,usr_correo=email,usr_contrasena=password,usr_rol=rol)
+
+        db.session.add(user)
+        db.session.commit()
+
+        return user
+
+    @classmethod
+    def get_by_id(cls, id):
+        return usuario.query.filter_by(id=id).first()
+
+    @classmethod
+    def get_by_name(cls, usr_nombre):
+        return usuario.query.filter_by(usr_nombre=usr_nombre).first()
+
+    @classmethod
+    def get_by_email(cls, usr_correo):
+        return usuario.query.filter_by(usr_correo=usr_correo).first()     
         
 #tabla nivel categoria
 
