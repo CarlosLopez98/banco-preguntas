@@ -52,7 +52,7 @@ class modelo:
 
 class rol(db.Model, modelo):
     __tablename__ = 'roles'
-
+    
     id = db.Column('rol_id', db.Integer, primary_key=True)
     rol_nombre = db.Column(db.String(20), nullable=False)
 
@@ -71,6 +71,7 @@ class rol(db.Model, modelo):
 #tabla usuario
 class usuario(db.Model, modelo, UserMixin):
     __tablename__ = 'usuarios'
+    
 
     id = db.Column('usr_id', db.Integer, primary_key=True)
     usr_nombre = db.Column(db.String(50), nullable=False)
@@ -131,6 +132,7 @@ class usuario(db.Model, modelo, UserMixin):
 class nivel_categoria(db.Model,modelo):
     __tablename__='niveles_categorias'
     
+
     id= db.Column('nivel_id', db.Integer , primary_key = True)
     nivel_nombre = db.Column(db.String(50),nullable=False)
     
@@ -152,15 +154,17 @@ class nivel_categoria(db.Model,modelo):
 #tabla de categoria
 class categoria(db.Model, modelo):
     __tablename__ = 'categorias'
+    
 
     id = db.Column('cat_id', db.Integer, primary_key = True)
     cat_padre=db.Column(db.Integer,db.ForeignKey('categorias.cat_id'))
     cat_nivel=db.Column(db.Integer,db.ForeignKey('niveles_categorias.nivel_id'))
     cat_nombre = db.Column(db.String(100),nullable=False)
 
-    def __init__(self, nombre,cat_nivel):
-        self.cat_nombre = nombre
+    def __init__(self, cat_nombre,cat_nivel,cat_padre):
+        self.cat_nombre = cat_nombre
         self.cat_nivel=cat_nivel
+        self.cat_padre=cat_padre
 
     # Obtener un atributo
     def get_atr(self, atr):
@@ -178,11 +182,16 @@ class categoria(db.Model, modelo):
         return categoria.query.filter_by(cat_nivel=cat_nivel)
     @classmethod
     def create_element(cls, data):
-        data[1]=get_modelo('niveles_categorias').get_by_name('Espacio academico').get_atr("nivel_id")
+        
+        data[1]=get_modelo('niveles_categorias').get_by_name(data[1]).get_atr("nivel_id")
+        
         if data[1]==1:
             r=None 
+            
         else:
             r=get_modelo('categorias').get_by_name(data[2]).get_atr("cat_id")
+            
+        
         cat = categoria(cat_nombre=data[0],cat_nivel=data[1],cat_padre=r)
 
         db.session.add(cat)
@@ -192,15 +201,17 @@ class categoria(db.Model, modelo):
 
     @classmethod
     def get_by_name(cls, cat_nombre):
-        return nivel_categoria.query.filter_by(cat_nombre=cat_nombre).first()    
-       
+        return categoria.query.filter_by(cat_nombre=cat_nombre).first()    
+    
+
 #Tabla intermediaria entre categoria y competencia
 class categoria_competecia(db.Model,modelo):
     __tablename__='categorias_competencias'
     
+
     id=db.Column('catCom',db.Integer,primary_key=True)
-    cat_id=db.Column(db.Integer,db.ForeignKey('categorias.id'))
-    com_id=db.Column(db.Integer,db.ForeignKey('competencias.id'))
+    cat_id=db.Column(db.Integer,db.ForeignKey('categorias.cat_id'))
+    com_id=db.Column(db.Integer,db.ForeignKey('competencias.com_id'))
     # Obtener un atributo
     def get_atr(self, atr):
         if atr == 'cat_com_id':
@@ -238,7 +249,7 @@ class competencia(db.Model, modelo):
     @classmethod
     def create_element(cls, data):
         
-        com= competencia(com_nombre=data[0],com_descripcion=data[1])
+        com= competencia(data[0],data[1])
 
         db.session.add(com)
         db.session.commit()
@@ -252,10 +263,11 @@ class competencia(db.Model, modelo):
 
 class evaluacion_competencia(db.Model,modelo):
     __tablename__='evaluaciones_competencias'
+    
 
     id=db.Column('eva_com_id', db.Integer, primary_key=True)        
-    eva_id=db.Column(db.Integer,db.ForeignKey('evaluaciones.id'))
-    com_id=db.Column(db.Integer,db.ForeignKey('competencias.id'))
+    eva_id=db.Column(db.Integer,db.ForeignKey('evaluaciones.eva_id'))
+    com_id=db.Column(db.Integer,db.ForeignKey('competencias.com_id'))
     
     def __init__(self,eva_id,com_id):
         self.eva_id=eva_id
@@ -272,20 +284,21 @@ class evaluacion_competencia(db.Model,modelo):
 
 class evaluacion(db.Model, modelo):
     __tablename__ = 'evaluaciones'
+    
 
     id = db.Column('eva_id', db.Integer, primary_key=True)
     eva_nombre = db.Column(db.String(100))
     eva_puntuacionmax = db.Column(db.Integer)
     eva_conjunta = db.Column(db.Boolean)
     eva_usuario = db.Column(db.Integer, db.ForeignKey('usuarios.usr_id'))
-    eva_competencia = db.Column(db.Integer, db.ForeignKey('competencias.com_id'))
+    
 
-    def __init__(self, nombre, puntuacion_max, usuario, competencia, conjunta=False):
+    def __init__(self, nombre, puntuacion_max, usuario,  conjunta=False):
         self.eva_nombre = nombre
         self.eva_puntuacionmax = puntuacion_max
         self.eva_conjunta = conjunta
         self.eva_usuario = usuario
-        self.eva_competencia = competencia
+      
 
     # Obtener un atributo
     def get_atr(self, atr):
@@ -299,12 +312,11 @@ class evaluacion(db.Model, modelo):
             return self.eva_conjunta
         elif atr == 'eva_usuario':
             return self.eva_usuario
-        elif atr == 'eva_competencia':
-            return self.eva_competencia
+        
     @classmethod
     def create_element(cls, data):
-        c=get_modelo('competencias').get_by_name(data[3]).get_atr("com_id")
-        eva = evaluacion(eva_nombre=data[0],eva_puntuacionmax=data[1],conjunta=data[2],eva_competencia=c,eva_usuario=data[4])
+        
+        eva = evaluacion(eva_nombre=data[0],eva_puntuacionmax=data[1],conjunta=data[2],eva_usuario=data[3])
 
         db.session.add(eva)
         db.session.commit()
@@ -314,6 +326,7 @@ class evaluacion(db.Model, modelo):
 #tabla para el manejo de tipo de preguntas
 class tipo_pregunta(db.Model, modelo):
     __tablename__ = 'tipo_preguntas'
+   
 
     id = db.Column('tpr_id', db.Integer, primary_key=True)
     tpr_nombre = db.Column(db.String(50), nullable=False)
@@ -331,13 +344,26 @@ class tipo_pregunta(db.Model, modelo):
             return self.tpr_nombre
         elif atr == 'tpr_descripcion':
             return self.tpr_descripcion
+           
+    @classmethod
+    def create_element(cls, data):
+        
+        tipo= tipo_pregunta(data[0],data[1])
+
+        db.session.add(tipo)
+        db.session.commit()
+
+        return tipo    
+        
 
 #tabla intermediaria entre pregunta y evaluacion
 class evaluacion_pregunta(db.Model,modelo):
     __tablename__='evaluaciones_preguntas'
+   
+
     id = db.Column('pre_eva_id', db.Integer, primary_key = True)
-    eva_id=db.Column(db.Integer,db.ForeignKey('evaluaciones.id'))
-    pre_id=db.Column(db.Integer,db.ForeignKey('preguntas.id'))
+    eva_id=db.Column(db.Integer,db.ForeignKey('evaluaciones.eva_id'))
+    pre_id=db.Column(db.Integer,db.ForeignKey('preguntas.pre_id'))
     
     def __init__(self, eva_id,pre_id):
         self.eva_id = eva_id
@@ -355,6 +381,7 @@ class evaluacion_pregunta(db.Model,modelo):
 #tabla para manejo de tipo de preguntas
 class pregunta(db.Model, modelo):
     __tablename__ = 'preguntas'
+    __table_args__ = {'extend_existing': True}
 
     id = db.Column('pre_id', db.Integer, primary_key = True)
     pre_texto = db.Column(db.String(150))
@@ -373,10 +400,23 @@ class pregunta(db.Model, modelo):
         elif atr == 'pre_tipo_pregunta':
             return self.pre_tipo_pregunta
         
+    @classmethod
+    def create_element(cls, data):
+        
+        pre = pregunta(data[0],data[1])
 
+        db.session.add(pre)
+        db.session.commit()
+
+        return pre
+    @classmethod
+    def get_by_name(cls, pre_texto):
+        return pregunta.query.filter_by(pre_texto=pre_texto).first()
+    
 #tala para manejo de respuesta
 class respuesta(db.Model, modelo):
     __tablename__ = 'respuestas'
+    
 
     id = db.Column('res_id', db.Integer, primary_key=True)
     res_texto = db.Column(db.String(140))
@@ -397,3 +437,13 @@ class respuesta(db.Model, modelo):
             return self.res_valor
         elif atr == 'res_pregunta':
             return self.res_pregunta
+
+    @classmethod
+    def create_element(cls, data):
+        p=get_modelo('preguntas').get_by_name(data[2]).get_atr('pre_id')
+        res= respuesta(data[0],data[1],p)
+
+        db.session.add(res)
+        db.session.commit()
+
+        return res

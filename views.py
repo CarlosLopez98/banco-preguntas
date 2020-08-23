@@ -4,7 +4,7 @@ from models import *
 from flask_login import login_user, logout_user, login_required, current_user
 from form import *
 import main
-from models import usuario,rol
+from models import *
 
 @app.errorhandler(404)
 def page_not_found(error):
@@ -17,8 +17,8 @@ def load_user(id):
 
 @app.route('/')
 def home():
-	
-    entidades = db.engine.table_names()
+    
+    entidades = db.engine.table_names()    
     return render_template('home.html', title='Inicio', menu='toggled', entidades=entidades)
 
 @app.route('/list/<string:entidad>')
@@ -40,13 +40,25 @@ def add(entidad):
     if request.method == 'POST' and form.validate():
         data=[]
         for i in form:
-            data+=i.data
-        get_modelo(entidad).create_element(data)    
+            data+=[i.data]
+        get_modelo(entidad).create_element(data)
+        entidades = db.engine.table_names()
+	    
+        campos = inspector.get_columns(entidad)
+
+        if len(campos) == 0:   
+            abort(404)
+
+        registros = get_modelo(entidad).get_all(get_modelo(entidad))
+        flash('El registro se agregó con éxito', 'success')
+        return render_template('list.html', title=entidad, entidades=entidades, entidad=entidad, campos=campos, registros=registros)
+        
     return render_template('add.html', title=f'Añadir {entidad}', entidad=entidad, entidades=entidades,form=form)
 
 @app.route('/edit/<string:entidad>/<int:id>')
 def edit(entidad, id):
 	entidades = db.engine.table_names()
+    
 	return render_template('edit.html', title=f'Editar {entidad}', entidad=entidad, entidades=entidades)
 
 @app.route('/delete/<string:entidad>/<int:id>')

@@ -1,6 +1,6 @@
 from wtforms import Form
 from wtforms import validators
-from wtforms import StringField, PasswordField, BooleanField, HiddenField, TextAreaField, IntegerField,SelectField,DecimalField
+from wtforms import StringField, PasswordField, BooleanField, HiddenField, TextAreaField, IntegerField,SelectField,FloatField
 from wtforms.fields.html5 import EmailField
 
 from models import *
@@ -150,8 +150,8 @@ class RespuestaForm(Form):
         validators.data_required(message='Ingresa el nombre.')
     ])    
     
-    valor=DecimalField('valor', [
-        validators.length(min=4, max=50),
+    valor=FloatField('valor', [
+        
         validators.data_required(message='Ingresa un nombre.')
     ])    
     
