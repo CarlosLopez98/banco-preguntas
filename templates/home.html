@@ -5,7 +5,7 @@
 
 <div class="row row-cols-1 row-cols-md-3">
     {% for entidad in entidades %}
-    {% if entidad!='evaluaciones_preguntas' and entidad!='categorias_competencias' and entidad!='evaluaciones_competencias' %}
+    {% if entidad not in ['evaluaciones_preguntas' ,'categorias_competencias' ,'evaluaciones_competencias','roles','niveles_categorias']%}
     <div class="col mb-4">
         <div class="card" style="background-color: #F1F1F1;">
             <div class="card-body text-center">

@@ -18,7 +18,7 @@
 			<div class="list-group list-group-flush">
 				{% if entidades %}
 					{% for entidad in entidades %}
-					{%if entidad!='evaluaciones_preguntas' and entidad!='evaluaciones_competencias' and entidad!='categorias_competencias' %}
+					{%if  entidad not in ['evaluaciones_preguntas' ,'categorias_competencias' ,'evaluaciones_competencias','role','niveles_categorias']%}
 						{% if title == entidad %}
 						<a href="{{ url_for('list', entidad=entidad) }}" class="list-group-item list-group-item-action bg-light text-primary">{{ entidad.upper() }}</a>
 						{% else %}
