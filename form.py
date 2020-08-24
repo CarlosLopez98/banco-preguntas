@@ -26,7 +26,7 @@ def lenght_honeypot(form, field):
         raise validators.ValidationError('Solo los humanos pueden completar este registro!')
         
 class LoginForm(Form):
-    email = StringField('Username', [
+    email = StringField('Correo', [
         validators.length(min=4, max=50, message='El campo debe tener entre 4 y 50 caracteres.'),
     ])
     password = PasswordField('Password', [
