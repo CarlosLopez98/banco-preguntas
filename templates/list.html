@@ -3,7 +3,9 @@
 {% block content %}
 <h1 class="text-center" style="margin-top: 30px;">{{ entidad.upper() }}</h1>
 
+{% if entidad != 'usuarios' %}
 <a href="{{ url_for('add', entidad=entidad) }}" class="btn btn-success ml-auto">Agregar</a>
+{% endif %}
 
 <table class="table table-striped" style="margin-top:20px;">
     <thead class="thead-dark">

@@ -108,7 +108,7 @@ class usuario(db.Model, modelo, UserMixin):
         
     @classmethod
     def create_element(cls, nombre,apellido,email,password,rol):
-        user = usuario(usr_nombre=nombre,usr_apellido=apellido,usr_correo=email,usr_contrasena=password,usr_rol=rol)
+        user = usuario(usr_nombre=nombre,usr_apellido=apellido,usr_correo=email,password=password,usr_rol=rol)
 
         db.session.add(user)
         db.session.commit()

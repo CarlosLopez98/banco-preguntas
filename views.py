@@ -16,6 +16,7 @@ def load_user(id):
 	return usuario.get_by_id(id)
 
 @app.route('/')
+@login_required
 def home():
     
     entidades = db.engine.table_names()    
@@ -114,8 +115,15 @@ def signup():
         user = usuario.create_element(name,apellido,email,password,r)
         flash('Usuario registrado con éxito.', 'success')
 
-        return redirect(url_for('home'))
+        return redirect(url_for('login'))
 
     return render_template('signup.html', title='Signup', form=form)
+
+@app.route('/logout')
+def logout():
+    if current_user.is_authenticated:
+        logout_user()
+        flash('Sesión cerrada con éxito', 'success')
+    return redirect(url_for('login'))
 	
 
