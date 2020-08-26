@@ -80,6 +80,9 @@ class usuario(db.Model, modelo, UserMixin):
     usr_contrasena = db.Column(db.String(94), nullable=False)
     usr_rol = db.Column(db.Integer, db.ForeignKey('roles.rol_id'))
 
+    def __str__(self):
+        return f'{self.usr_nombre} {self.usr_apellido}'.upper()
+
     # Obtener un atributo
     def get_atr(self, atr):
         if atr == 'usr_id':
@@ -316,7 +319,7 @@ class evaluacion(db.Model, modelo):
     @classmethod
     def create_element(cls, data):
         
-        eva = evaluacion(eva_nombre=data[0],eva_puntuacionmax=data[1],conjunta=data[2],eva_usuario=data[3])
+        eva = evaluacion(nombre=data[0], puntuacion_max=data[1], conjunta=data[2], usuario=data[3])
 
         db.session.add(eva)
         db.session.commit()
@@ -390,6 +393,9 @@ class pregunta(db.Model, modelo):
     def __init__(self, texto,  tipo):
         self.pre_texto = texto
         self.pre_tipo_pregunta = tipo
+
+    def __str__(self):
+        return self.pre_texto
 
     # Obtener un atributo
     def get_atr(self, atr):

@@ -26,7 +26,6 @@
 						{% endif %}
 					{% endif %}
 					{% endfor %}
-					<a href="{{ url_for('logout') }}" class="list-group-item list-group-item-action bg-light text-danger">CERRAR SESIÓN</a>
 				{% else %}
 					<a href="{{ url_for('login') }}" class="list-group-item list-group-item-action bg-light">INGRESAR</a>
 					<a href="{{ url_for('signup') }}" class="list-group-item list-group-item-action bg-light">REGISTRARSE</a>
@@ -42,6 +41,17 @@
 				<button class="btn" id="menu-toggle"><span class="navbar-toggler-icon"></span></button>
 	
 				<a href="{{ url_for('home') }}" class="navbar-brand ml-auto mr-auto">BANCO DE PREGUNTAS</a>
+
+				{% if current_user.is_authenticated %}
+				<div class="dropdown">
+					<button class="btn dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					{{ current_user }}
+					</button>
+					<div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+						<a class="dropdown-item" href="{{ url_for('logout') }}">Cerrar sesión</a>
+					</div>
+				</div>
+				{% endif %}
 			</nav>
 	
 			<div class="container-fluid">

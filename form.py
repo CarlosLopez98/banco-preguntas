@@ -152,10 +152,14 @@ class RespuestaForm(Form):
     
     valor=FloatField('valor', [
         
-        validators.data_required(message='Ingresa un nombre.')
+        validators.data_required(message='Ingresa un valor.')
     ])    
     
     pregunta=get_modelo('preguntas').get_all(get_modelo('preguntas'))
-    preguntas=SelectField('preguntas', choices=[(p.get_atr('pre_texto')) for p in pregunta ])
+    preguntas=SelectField('preguntas', choices=[p.pre_texto for p in pregunta ])
+
+    def actualizar(self):
+        self.pregunta = get_modelo('preguntas').get_all(get_modelo('preguntas'))
+        self.preguntas = SelectField('preguntas', choices=[p.pre_texto for p in self.pregunta ])
     
     
