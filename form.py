@@ -116,45 +116,49 @@ class EvaluacionForm(Form):
     nombre = StringField('Nombre de la evaluación', [
         validators.length(min=4, max=50),
         validators.data_required(message='Ingresa el nombre.')
-    ])  
+    ], render_kw={'placeholder': 'Escribe un nombre para la evaluación'})  
 
-    valor = IntegerField('Valor maximo', [
+    valor = IntegerField('Calificación máxima', [
         validators.data_required(message='Ingresa un valor.')
     ])  
-    conjunta = BooleanField()
-    com = get_modelo('competencias').get_all(get_modelo('competencias'))
-    competencias = SelectField('Competencia', choices=[(t.get_atr('com_nombre')) for t in com])
+    conjunta = BooleanField('Es conjunta', render_kw={'style': 'width: 20px'})
 
 
 class PreguntaForm(Form):
     contenido = StringField('Contenido de la pregunta', [
         validators.length(min=4, max=50),
         validators.data_required(message='Ingresa el nombre.')
-    ])    
+    ], render_kw={'placeholder': 'Escribe el contenido de la pregunta'})
+
     tipo = get_modelo('tipo_preguntas').get_all(get_modelo('tipo_preguntas'))
-    tipos = SelectField('Tipos de pregunta', choices=[(t.get_atr('tpr_nombre')) for t in tipo])
+    tipos = SelectField('Tipos de pregunta', choices=[(t.id, t.tpr_nombre) for t in tipo])
+
+    competencia = get_modelo('competencias').get_all(get_modelo('competencias'))
+    competencias = SelectField('Competencias', choices=[(c.id, c.com_nombre) for c in competencia])
 
 
 class TipoPreguntaForm(Form):
     contenido= StringField('Nombre', [
         validators.length(min=4, max=50),
         validators.data_required(message='Ingresa el nombre.')
-    ])
-    descripcion= StringField('Descripción', [
+    ], render_kw={'placeholder': 'Escribe el nombre del tipo'})
+    descripcion= TextAreaField('Descripción', [
         validators.length(min=4, max=50),
         validators.data_required(message='Ingresa una descripcion.')
-    ]) 
+    ], render_kw={'placeholder': 'La descripción del tipo'}) 
 
 
 class RespuestaForm(Form):
     texto = StringField('Texto', [
         validators.length(min=4, max=50),
         validators.data_required(message='Ingresa el nombre.')
-    ])    
+    ], render_kw={'placeholder': 'Escribe el texto de la respuesta'})    
     
-    valor = FloatField('valor', [
+    valor = FloatField('Valor', [
         validators.data_required(message='Ingresa un valor.')
-    ])    
+    ], render_kw={'placeholder': 'Que valor tiene la respuesta'})
+
+    correcta = BooleanField('Correcta', render_kw={'style': 'width: 20px;'})
     
     pregunta = get_modelo('preguntas').get_all(get_modelo('preguntas'))
     preguntas = SelectField('preguntas', choices=[p.pre_texto for p in pregunta ])

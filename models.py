@@ -4,23 +4,48 @@ from werkzeug.security import generate_password_hash
 from werkzeug.security import check_password_hash
 
 
-def get_modelo(entidad):
-    if entidad == 'roles':
-        return rol
-    elif entidad == 'usuarios':
-        return usuario
-    elif entidad == 'categorias':
-        return categoria
-    elif entidad == 'competencias':
-        return competencia
-    elif entidad == 'evaluaciones':
-        return evaluacion
-    elif entidad == 'tipo_preguntas':
-        return tipo_pregunta
-    elif entidad == 'preguntas':
-        return pregunta
-    elif entidad == 'respuestas':
-        return respuesta
+def get_modelo(entidad, datos=None):
+    if datos == None:
+        if entidad == 'roles':
+            return rol
+        elif entidad == 'usuarios':
+            return usuario
+        elif entidad == 'categorias':
+            return categoria
+        elif entidad == 'competencias':
+            return competencia
+        elif entidad == 'evaluaciones':
+            return evaluacion
+        elif entidad == 'evaluaciones_preguntas':
+            return evaluacion_pregunta
+        elif entidad == 'tipo_preguntas':
+            return tipo_pregunta
+        elif entidad == 'preguntas':
+            return pregunta
+        elif entidad == 'respuestas':
+            return respuesta
+    else:
+        if entidad == 'roles':
+            return rol(rol_nombre=datos[0])
+        elif entidad == 'usuarios':
+            return usuario(usr_nombre=datos[0], usr_apellido=datos[1], usr_username=datos[2], 
+                            usr_correo=datos[3], password=datos[4], usr_rol=datos[5])
+        elif entidad == 'categorias':
+            return categoria(cat_nombre=datos[0], cat_descripcion=datos[1])
+        elif entidad == 'competencias':
+            return competencia(com_nombre=datos[0], com_descripcion=datos[1], com_categoria=datos[2])
+        elif entidad == 'evaluaciones':
+            return evaluacion(eva_nombre=datos[0], eva_puntuacionmax=datos[1], eva_conjunta=datos[2], 
+                                eva_usuario=datos[3])
+        elif entidad == 'evaluaciones_preguntas':
+            return evaluacion_pregunta(epr_evaluacion=datos[0], epr_pregunta=datos[1])
+        elif entidad == 'tipo_preguntas':
+            return tipo_pregunta(tpr_nombre=datos[0], tpr_descripcion=datos[1])
+        elif entidad == 'preguntas':
+            return pregunta(pre_texto=datos[0], pre_tipo_pregunta=datos[1], pre_competencia=datos[2],
+                                pre_usuario=datos[3])
+        elif entidad == 'respuestas':
+            return respuesta(res_texto=datos[0], res_valor=datos[1], res_correcta=datos[2], res_pregunta=datos[3])
 
 
 class modelo:
@@ -185,16 +210,8 @@ class competencia(db.Model, modelo):
             return self.com_nombre
         elif atr == 'com_descripcion':
             return self.com_descripcion
-        
-    @classmethod
-    def create_element(cls, data):
-        
-        com= competencia(data[0],data[1])
-
-        db.session.add(com)
-        db.session.commit()
-
-        return com
+        elif atr == 'com_categoria':
+            return self.com_categoria
 
 
 class evaluacion(db.Model, modelo):
@@ -205,7 +222,6 @@ class evaluacion(db.Model, modelo):
     eva_puntuacionmax = db.Column(db.Integer)
     eva_conjunta = db.Column(db.Boolean)
     eva_usuario = db.Column(db.Integer, db.ForeignKey('usuarios.usr_id'))
-    preguntas = db.relationship('pregunta', lazy='dynamic')
 
     # Obtener un atributo
     def get_atr(self, atr):
@@ -266,6 +282,7 @@ class evaluacion_pregunta(db.Model,modelo):
     id = db.Column('epr_id', db.Integer, primary_key=True)
     epr_evaluacion = db.Column(db.Integer, db.ForeignKey('evaluaciones.eva_id'))
     epr_pregunta = db.Column(db.Integer, db.ForeignKey('preguntas.pre_id'))
+    epr_valor = db.Column(db.Integer, nullable=True)
 
     # Obtener un atributo
     def get_atr(self, atr):
@@ -275,19 +292,19 @@ class evaluacion_pregunta(db.Model,modelo):
             return self.epr_evaluacion
         elif atr == 'epr_pregunta':
             return self.epr_pregunta
+        elif atr == 'epr_valor':
+            return self.epr_valor
 
 
 class pregunta(db.Model, modelo):
     __tablename__ = 'preguntas'
     __table_args__ = {'extend_existing': True}
 
-    id = db.Column('pre_id', db.Integer, primary_key = True)
-    pre_texto = db.Column(db.String(150))
-    pre_valor = db.Column(db.Integer)
+    id = db.Column('pre_id', db.Integer, primary_key=True)
+    pre_texto = db.Column(db.String(200))
     pre_tipo_pregunta = db.Column(db.Integer, db.ForeignKey('tipo_preguntas.tpr_id'))
     pre_competencia = db.Column(db.Integer, db.ForeignKey('competencias.com_id'))
     pre_usuario = db.Column(db.Integer, db.ForeignKey('usuarios.usr_id'))
-    pre_evaluacion = db.Column(db.Integer, db.ForeignKey('evaluaciones.eva_id'), nullable=True)
     respuestas = db.relationship('respuesta', lazy='dynamic')
 
     def __str__(self):

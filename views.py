@@ -23,15 +23,15 @@ def home():
 @app.route('/list/<string:entidad>')
 @login_required
 def list(entidad):
-	entidades = db.engine.table_names()
-	campos = inspector.get_columns(entidad)
-
-	if len(campos) == 0:
-		abort(404)
-
-	registros = get_modelo(entidad).get_all(get_modelo(entidad))
-
-	return render_template('list.html', title=entidad, entidades=entidades, entidad=entidad, campos=campos, registros=registros)
+    entidades = db.engine.table_names()
+    campos = inspector.get_columns(entidad)
+    
+    if len(campos) == 0:
+        abort(404)
+        
+    registros = get_modelo(entidad).get_all(get_modelo(entidad))
+    
+    return render_template('list.html', title=entidad, entidades=entidades, entidad=entidad, campos=campos, registros=registros)
 
 @app.route('/add/<string:entidad>',methods=['GET', 'POST'])
 @login_required
@@ -43,28 +43,65 @@ def add(entidad):
     if len(campos) == 0:   
         abort(404)
 
-    form=getForm(entidad,request.form)
-    if entidad == 'respuestas':
-        form.actualizar()
+    form = getForm(entidad,request.form)
 
     if request.method == 'POST' and form.validate():
-        data=[]
-        for i in form:
-            data+=[i.data]
-        get_modelo(entidad).create_element(data)
+        data = []
+        for field in form:
+            data += [field.data]
 
-        registros = get_modelo(entidad).get_all(get_modelo(entidad))
-        flash('El registro se agregó con éxito', 'success')
-        return render_template('list.html', title=entidad, entidades=entidades, entidad=entidad, campos=campos, registros=registros)
+        if entidad == 'evaluaciones' or entidad == 'preguntas':
+            data += [current_user.id]
+        
+        registro = get_modelo(entidad, datos=data)
+        registro = registro.add(registro)
+
+        if registro:
+            flash('El registro se agregó con éxito', 'success')
+            return redirect(url_for('list', entidad=entidad))
+        else:
+            flash('Hubo un problema para agregar el registro', 'danger')
         
     return render_template('add.html', title=f'Añadir {entidad}', entidad=entidad, entidades=entidades,form=form)
 
 @app.route('/edit/<string:entidad>/<int:id>')
 @login_required
 def edit(entidad, id):
-	entidades = db.engine.table_names()
+    entidades = db.engine.table_names()
     
-	return render_template('edit.html', title=f'Editar {entidad}', entidad=entidad, entidades=entidades)
+    campos = inspector.get_columns(entidad)
+    
+    if len(campos) == 0:
+        abort(404)
+        
+    form = getForm(entidad,request.form)
+    registro = get_modelo(entidad).get_by_id(get_modelo(entidad), id)
+
+    if registro is None:
+        flash('El registro que desea editar no existe', 'danger')
+        return redirect(url_for('list', entidad=entidad))
+
+    for field in form:
+        field.data = id
+    
+    if request.method == 'POST' and form.validate():
+        data = []
+        for field in form:
+            data += [field.data]
+            
+        if entidad == 'evaluaciones' or entidad == 'preguntas':
+            data += [current_user.id]
+            
+        registro = get_modelo(entidad, datos=data)
+        registro = registro.add(registro)
+        
+        if registro:
+            flash('El registro se agregó con éxito', 'success')
+            return redirect(url_for('list', entidad=entidad))
+        else:
+            flash('Hubo un problema para agregar el registro', 'danger')
+            
+    return render_template('edit.html', title=f'Añadir {entidad}', entidad=entidad, entidades=entidades,form=form)
 
 @app.route('/delete/<string:entidad>/<int:id>')
 @login_required

@@ -1,5 +1,24 @@
 {% extends 'layout.html' %}
 
 {% block content %}
-    <h1 class="text-center" style="margin-top: 30px;">EDITAR {{ entidad.upper() }}</h1>
+<h1 class="text-center" style="margin-top: 30px;">EDITAR {{ entidad.upper() }}</h1>
+<div class="card mr-auto ml-auto" style="width: 30rem; margin-top: 20px;">
+    <div class="card-header text-center">
+        <h5 class="card-title">Formulario</h5>
+    </div>
+    <div class="card-body">
+        <form action="" method="POST" novalidate>
+            {% for f in form%}
+            <div class="form-group">
+                {{f.label}}
+                {{ f(class="form-control") }}
+                {% for error in f.errors %}
+                <span style="color: red;">{{ error }}</span>
+                {% endfor %}
+            </div>
+            {% endfor %}
+            <input type="submit" value="Editar" class="card-link btn btn-primary">
+        </form>
+    </div>
+</div>
 {% endblock %}

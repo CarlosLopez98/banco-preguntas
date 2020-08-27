@@ -8,7 +8,7 @@ def step_impl(context, entidad, id):
     context.api_url = f'http://localhost:5000/delete/{entidad}/{id}'
     print('url :'+context.api_url)
 
-@when('the register is deleted of DB')
+@when('the registry is deleted of DB')
 def step_impl(context):
     session = requests.Session()
     response = session.get(url=context.api_url, headers="")
