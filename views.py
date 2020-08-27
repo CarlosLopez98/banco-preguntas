@@ -1,10 +1,8 @@
 from flask import request, flash, url_for, redirect, render_template, abort, session
 from main import app, db, inspector, login_manager
-from models import *
 from flask_login import login_user, logout_user, login_required, current_user
-from form import *
-import main
 from models import *
+from form import *
 
 @app.errorhandler(404)
 def page_not_found(error):
@@ -13,7 +11,7 @@ def page_not_found(error):
 
 @login_manager.user_loader
 def load_user(id):
-	return usuario.get_by_id(id)
+	return usuario.get_by_id(usuario, id)
 
 @app.route('/')
 @login_required
@@ -113,13 +111,17 @@ def signup():
     form = RegisterForm(request.form,roles=1)
    
     if request.method == 'POST' and form.validate():
-        name=form.nombre.data
-        apellido=form.apellido.data
+        name = form.nombre.data
+        apellido = form.apellido.data
+        username = form.username.data
         email = form.email.data
         password = form.password.data
-        r=form.roles.data
-        r=rol.get_by_name(r).get_atr('rol_id')
-        user = usuario.create_element(name,apellido,email,password,r)
+        rol = form.roles.data
+
+        user = usuario(usr_nombre=name, usr_apellido=apellido, usr_username=username, usr_correo=email,
+                        password=password, usr_rol=rol)
+
+        user = usuario.add(user)
         flash('Usuario registrado con éxito.', 'success')
 
         return redirect(url_for('login'))
@@ -132,5 +134,3 @@ def logout():
         logout_user()
         flash('Sesión cerrada con éxito', 'success')
     return redirect(url_for('login'))
-	
-

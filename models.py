@@ -21,8 +21,6 @@ def get_modelo(entidad):
         return pregunta
     elif entidad == 'respuestas':
         return respuesta
-    elif entidad == 'niveles_categorias':
-        return nivel_categoria
 
 
 class modelo:
@@ -43,21 +41,20 @@ class modelo:
         db.session.add(registro)
         db.session.commit()
 
+        return registro
+
     @classmethod
     def delete(cls, registro):
         db.session.delete(registro)
         db.session.commit()
 
 #tabla rol
-
 class rol(db.Model, modelo):
     __tablename__ = 'roles'
     
     id = db.Column('rol_id', db.Integer, primary_key=True)
-    rol_nombre = db.Column(db.String(20), nullable=False)
-
-    def __init__(self, nombre):
-        self.rol_nombre = nombre
+    rol_nombre = db.Column(db.String(20), nullable=False, unique=True)
+    usuarios = db.relationship('usuario', lazy='dynamic')
         
     # Obtener un atributo
     def get_atr(self, atr):
@@ -65,23 +62,26 @@ class rol(db.Model, modelo):
             return self.id
         elif atr == 'rol_nombre':
             return self.rol_nombre
+    
     @classmethod
     def get_by_name(cls, rol_nombre):
         return rol.query.filter_by(rol_nombre=rol_nombre).first()
+
+
 #tabla usuario
 class usuario(db.Model, modelo, UserMixin):
     __tablename__ = 'usuarios'
-    
 
     id = db.Column('usr_id', db.Integer, primary_key=True)
     usr_nombre = db.Column(db.String(50), nullable=False)
     usr_apellido = db.Column(db.String(50), nullable=False)
+    usr_username = db.Column(db.String(50), nullable=False, unique=True)
     usr_correo = db.Column(db.String(100), nullable=False, unique=True)
     usr_contrasena = db.Column(db.String(94), nullable=False)
     usr_rol = db.Column(db.Integer, db.ForeignKey('roles.rol_id'))
 
     def __str__(self):
-        return f'{self.usr_nombre} {self.usr_apellido}'.upper()
+        return f'{self.usr_nombre.capitalize()} {self.usr_apellido.capitalize()} (@{self.usr_username.capitalize()})'
 
     # Obtener un atributo
     def get_atr(self, atr):
@@ -91,6 +91,8 @@ class usuario(db.Model, modelo, UserMixin):
             return self.usr_nombre
         elif atr == 'usr_apellido':
             return self.usr_apellido
+        elif atr == 'usr_username':
+            return self.usr_username
         elif atr == 'usr_correo':
             return self.usr_correo
         elif atr == 'usr_rol':
@@ -98,7 +100,6 @@ class usuario(db.Model, modelo, UserMixin):
         
 
     def verify_password(self, password):
-       
         return check_password_hash(self.usr_contrasena, password)
 
     @property
@@ -110,8 +111,9 @@ class usuario(db.Model, modelo, UserMixin):
         self.usr_contrasena = generate_password_hash(value)
         
     @classmethod
-    def create_element(cls, nombre,apellido,email,password,rol):
-        user = usuario(usr_nombre=nombre,usr_apellido=apellido,usr_correo=email,password=password,usr_rol=rol)
+    def create_element(cls, nombre, apellido, username, email, password, rol):
+        user = usuario(usr_nombre=nombre, usr_apellido=apellido, usr_username=username, 
+                        usr_correo=email, password=password, usr_rol=rol)
 
         db.session.add(user)
         db.session.commit()
@@ -119,55 +121,22 @@ class usuario(db.Model, modelo, UserMixin):
         return user
 
     @classmethod
-    def get_by_id(cls, id):
-        return usuario.query.filter_by(id=id).first()
-
-    @classmethod
-    def get_by_name(cls, usr_nombre):
-        return usuario.query.filter_by(usr_nombre=usr_nombre).first()
+    def get_by_username(cls, username):
+        return usuario.query.filter_by(usr_username=username).first()
 
     @classmethod
     def get_by_email(cls, usr_correo):
-        return usuario.query.filter_by(usr_correo=usr_correo).first()     
-        
-#tabla nivel categoria
-
-class nivel_categoria(db.Model,modelo):
-    __tablename__='niveles_categorias'
-    
-
-    id= db.Column('nivel_id', db.Integer , primary_key = True)
-    nivel_nombre = db.Column(db.String(50),nullable=False)
-    
-    def __init__(self, nombre):
-        self.nivel_nombre = nombre
-
-    # Obtener un atributo
-    def get_atr(self, atr):
-        if atr == 'nivel_id':
-            return self.id
-        elif atr == 'nivel_nombre':
-            return self.nivel_nombre
-
-    @classmethod
-    def get_by_name(cls, nivel_nombre):
-        return nivel_categoria.query.filter_by(nivel_nombre=nivel_nombre).first()
+        return usuario.query.filter_by(usr_correo=usr_correo).first()
 
     
 #tabla de categoria
 class categoria(db.Model, modelo):
     __tablename__ = 'categorias'
-    
 
     id = db.Column('cat_id', db.Integer, primary_key = True)
-    cat_padre=db.Column(db.Integer,db.ForeignKey('categorias.cat_id'))
-    cat_nivel=db.Column(db.Integer,db.ForeignKey('niveles_categorias.nivel_id'))
-    cat_nombre = db.Column(db.String(100),nullable=False)
-
-    def __init__(self, cat_nombre,cat_nivel,cat_padre):
-        self.cat_nombre = cat_nombre
-        self.cat_nivel=cat_nivel
-        self.cat_padre=cat_padre
+    cat_nombre = db.Column(db.String(100), nullable=False)
+    cat_descripcion = db.Column(db.Text, nullable=False)
+    competencias = db.relationship('competencia', lazy='dynamic')
 
     # Obtener un atributo
     def get_atr(self, atr):
@@ -175,17 +144,12 @@ class categoria(db.Model, modelo):
             return self.id
         elif atr == 'cat_nombre':
             return self.cat_nombre
-        elif atr=='cat_nivel':
-            return self.cat_nivel
-        elif atr=='cat_padre':
-            return self.cat_padre
+        elif atr == 'cat_descripcion':
+            return self.cat_descripcion
 
     @classmethod
-    def get_by_nivel(cls, cat_nivel):
-        return categoria.query.filter_by(cat_nivel=cat_nivel)
-    @classmethod
     def create_element(cls, data):
-        
+        #FIX IT
         data[1]=get_modelo('niveles_categorias').get_by_name(data[1]).get_atr("nivel_id")
         
         if data[1]==1:
@@ -201,29 +165,6 @@ class categoria(db.Model, modelo):
         db.session.commit()
 
         return cat
-
-    @classmethod
-    def get_by_name(cls, cat_nombre):
-        return categoria.query.filter_by(cat_nombre=cat_nombre).first()    
-    
-
-#Tabla intermediaria entre categoria y competencia
-class categoria_competecia(db.Model,modelo):
-    __tablename__='categorias_competencias'
-    
-
-    id=db.Column('catCom',db.Integer,primary_key=True)
-    cat_id=db.Column(db.Integer,db.ForeignKey('categorias.cat_id'))
-    com_id=db.Column(db.Integer,db.ForeignKey('competencias.com_id'))
-    # Obtener un atributo
-    def get_atr(self, atr):
-        if atr == 'cat_com_id':
-            return self.id
-        elif atr == 'cat_id':
-            return self.cat_id
-        elif atr== 'com_id':
-            return self.com_id
-        
         
         
 #tabla para manejar competencias
@@ -231,14 +172,10 @@ class competencia(db.Model, modelo):
     __tablename__ = 'competencias'
 
     id = db.Column('com_id', db.Integer, primary_key=True)
-    com_nombre = db.Column(db.String(50))
-    com_descripcion = db.Column(db.Text)
-    
-
-    def __init__(self, nombre, descripcion):
-        self.com_nombre = nombre
-        self.com_descripcion = descripcion
-       
+    com_nombre = db.Column(db.String(50), nullable=False)
+    com_descripcion = db.Column(db.Text, nullable=False)
+    com_categoria = db.Column(db.Integer, db.ForeignKey('categorias.cat_id'))
+    preguntas = db.relationship('pregunta', lazy='dynamic')
 
     # Obtener un atributo
     def get_atr(self, atr):
@@ -258,50 +195,17 @@ class competencia(db.Model, modelo):
         db.session.commit()
 
         return com
-    
-    @classmethod
-    def get_by_name(cls, com_nombre):
-        return competencia.query.filter_by(com_nombre=com_nombre).first()
-#tabla conexion entre evaluacion y competencia
-
-class evaluacion_competencia(db.Model,modelo):
-    __tablename__='evaluaciones_competencias'
-    
-
-    id=db.Column('eva_com_id', db.Integer, primary_key=True)        
-    eva_id=db.Column(db.Integer,db.ForeignKey('evaluaciones.eva_id'))
-    com_id=db.Column(db.Integer,db.ForeignKey('competencias.com_id'))
-    
-    def __init__(self,eva_id,com_id):
-        self.eva_id=eva_id
-        self.com_id=com_id
-        
-        
-    def get_atr(self,atr):
-        if atr=='eva_id':
-            return self.eva_id
-        elif atr=='com_id':
-            return self.com_id
-#tabla para manejo de evaluacion
 
 
 class evaluacion(db.Model, modelo):
     __tablename__ = 'evaluaciones'
-    
 
     id = db.Column('eva_id', db.Integer, primary_key=True)
     eva_nombre = db.Column(db.String(100))
     eva_puntuacionmax = db.Column(db.Integer)
     eva_conjunta = db.Column(db.Boolean)
     eva_usuario = db.Column(db.Integer, db.ForeignKey('usuarios.usr_id'))
-    
-
-    def __init__(self, nombre, puntuacion_max, usuario,  conjunta=False):
-        self.eva_nombre = nombre
-        self.eva_puntuacionmax = puntuacion_max
-        self.eva_conjunta = conjunta
-        self.eva_usuario = usuario
-      
+    preguntas = db.relationship('pregunta', lazy='dynamic')
 
     # Obtener un atributo
     def get_atr(self, atr):
@@ -329,15 +233,11 @@ class evaluacion(db.Model, modelo):
 #tabla para el manejo de tipo de preguntas
 class tipo_pregunta(db.Model, modelo):
     __tablename__ = 'tipo_preguntas'
-   
 
     id = db.Column('tpr_id', db.Integer, primary_key=True)
     tpr_nombre = db.Column(db.String(50), nullable=False)
     tpr_descripcion = db.Column(db.Text)
-
-    def __init__(self, nombre, descripcion=None):
-        self.tpr_nombre = nombre
-        self.tpr_descripcion = descripcion
+    preguntas = db.relationship('pregunta', lazy='dynamic')
 
     # Obtener un atributo
     def get_atr(self, atr):
@@ -361,38 +261,34 @@ class tipo_pregunta(db.Model, modelo):
 
 #tabla intermediaria entre pregunta y evaluacion
 class evaluacion_pregunta(db.Model,modelo):
-    __tablename__='evaluaciones_preguntas'
-   
+    __tablename__ = 'evaluaciones_preguntas'
 
-    id = db.Column('pre_eva_id', db.Integer, primary_key = True)
-    eva_id=db.Column(db.Integer,db.ForeignKey('evaluaciones.eva_id'))
-    pre_id=db.Column(db.Integer,db.ForeignKey('preguntas.pre_id'))
-    
-    def __init__(self, eva_id,pre_id):
-        self.eva_id = eva_id
-        self.pre_id=pre_id
+    id = db.Column('epr_id', db.Integer, primary_key=True)
+    epr_evaluacion = db.Column(db.Integer, db.ForeignKey('evaluaciones.eva_id'))
+    epr_pregunta = db.Column(db.Integer, db.ForeignKey('preguntas.pre_id'))
 
     # Obtener un atributo
     def get_atr(self, atr):
-        if atr == 'eva_pre_id':
+        if atr == 'epr_id':
             return self.id
-        elif atr == 'eva_id':
-            return self.eva_id
-        elif atr == 'pre_id':
-            return self.pre_id
-    
-#tabla para manejo de tipo de preguntas
+        elif atr == 'epr_evaluacion':
+            return self.epr_evaluacion
+        elif atr == 'epr_pregunta':
+            return self.epr_pregunta
+
+
 class pregunta(db.Model, modelo):
     __tablename__ = 'preguntas'
     __table_args__ = {'extend_existing': True}
 
     id = db.Column('pre_id', db.Integer, primary_key = True)
     pre_texto = db.Column(db.String(150))
+    pre_valor = db.Column(db.Integer)
     pre_tipo_pregunta = db.Column(db.Integer, db.ForeignKey('tipo_preguntas.tpr_id'))
-
-    def __init__(self, texto,  tipo):
-        self.pre_texto = texto
-        self.pre_tipo_pregunta = tipo
+    pre_competencia = db.Column(db.Integer, db.ForeignKey('competencias.com_id'))
+    pre_usuario = db.Column(db.Integer, db.ForeignKey('usuarios.usr_id'))
+    pre_evaluacion = db.Column(db.Integer, db.ForeignKey('evaluaciones.eva_id'), nullable=True)
+    respuestas = db.relationship('respuesta', lazy='dynamic')
 
     def __str__(self):
         return self.pre_texto
@@ -405,19 +301,16 @@ class pregunta(db.Model, modelo):
             return self.pre_texto
         elif atr == 'pre_tipo_pregunta':
             return self.pre_tipo_pregunta
+        elif atr == 'pre_competencia':
+            return self.pre_competencia
+        elif atr == 'pre_usuario':
+            return self.pre_usuario
+        elif atr == 'pre_evaluacion':
+            return self.pre_evaluacion
         
     @classmethod
     def create_element(cls, data):
-        
-        pre = pregunta(data[0],data[1])
-
-        db.session.add(pre)
-        db.session.commit()
-
-        return pre
-    @classmethod
-    def get_by_name(cls, pre_texto):
-        return pregunta.query.filter_by(pre_texto=pre_texto).first()
+        pass
     
 #tala para manejo de respuesta
 class respuesta(db.Model, modelo):
@@ -426,19 +319,17 @@ class respuesta(db.Model, modelo):
 
     id = db.Column('res_id', db.Integer, primary_key=True)
     res_texto = db.Column(db.String(140))
+    res_correcta = db.Column(db.Boolean, nullable=False)
     res_valor = db.Column(db.Float)
-    res_pregunta = db.Column(db.Integer, db.ForeignKey('preguntas.pre_id')) #Revisar
-
-    def __init__(self, texto, valor, pregunta):
-        self.res_texto = texto
-        self.res_valor = valor
-        self.res_pregunta = pregunta
+    res_pregunta = db.Column(db.Integer, db.ForeignKey('preguntas.pre_id'))
 
     def get_atr(self,atr):
         if atr == 'res_id':
             return self.id
         elif atr == 'res_texto':
             return self.res_texto
+        elif atr == 'res_correcta':
+            return self.res_correcta
         elif atr == 'res_valor':
             return self.res_valor
         elif atr == 'res_pregunta':
@@ -446,10 +337,4 @@ class respuesta(db.Model, modelo):
 
     @classmethod
     def create_element(cls, data):
-        p=get_modelo('preguntas').get_by_name(data[2]).get_atr('pre_id')
-        res= respuesta(data[0],data[1],p)
-
-        db.session.add(res)
-        db.session.commit()
-
-        return res
+        pass
